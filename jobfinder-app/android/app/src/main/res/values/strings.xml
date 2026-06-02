@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">WorkNear</string>
+    <string name="title_activity_main">WorkNear</string>
+    <string name="package_name">com.worknear.app</string>
+    <string name="custom_url_scheme">com.worknear.app</string>
+</resources>

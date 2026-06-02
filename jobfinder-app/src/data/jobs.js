@@ -1,0 +1,93 @@
+export const jobs = [
+  {
+    id: 1,
+    title: "Asesor Comercial Senior",
+    description: "Importante empresa del sector retail busca asesor comercial con trayectoria comprobada en ventas B2B. Funciones: prospección de clientes, negociación, cierre de ventas, seguimiento a cartera.",
+    category: "ventas",
+    type: "tiempo completo",
+    experience_required: "3 años",
+    salary_range: "$2.500.000 - $3.200.000 COP",
+    location_address: "Centro Comercial Alamedas, Montería",
+    company: "Moda Express SAS",
+    posted_at: "2024-05-20",
+    is_active: true
+  },
+  {
+    id: 2,
+    title: "Desarrollador Backend Laravel",
+    description: "Empresa de tecnología busca desarrollador con experiencia en Laravel, PHP, MySQL y APIs REST.",
+    category: "tecnología",
+    type: "tiempo completo",
+    experience_required: "2 años",
+    salary_range: "$3.500.000 - $4.500.000 COP",
+    location_address: "Parque Lineal, Montería",
+    company: "Tech Solutions SAS",
+    posted_at: "2024-05-19",
+    is_active: true
+  },
+  {
+    id: 3,
+    title: "Auxiliar de Enfermería",
+    description: "Clínica privada busca auxiliar de enfermería para turnos rotativos. Funciones: cuidado de pacientes, administración de medicamentos bajo supervisión.",
+    category: "salud",
+    type: "tiempo completo",
+    experience_required: "1 año",
+    salary_range: "$1.800.000 - $2.200.000 COP",
+    location_address: "Avenida Circunvalar, Montería",
+    company: "Clínica del Sinú",
+    posted_at: "2024-05-18",
+    is_active: true
+  },
+  {
+    id: 4,
+    title: "Coordinador de Marketing Digital",
+    description: "Agencia digital busca coordinador para gestionar campañas en redes sociales, SEO, SEM y equipo creativo.",
+    category: "marketing",
+    type: "tiempo completo",
+    experience_required: "4 años",
+    salary_range: "$3.000.000 - $4.000.000 COP",
+    location_address: "Barrio Montería Moderno, Montería",
+    company: "Agencia Creativa Digital",
+    posted_at: "2024-05-17",
+    is_active: true
+  },
+  {
+    id: 5,
+    title: "Conductor de Transporte",
+    description: "Empresa de logística busca conductores con licencia C1 para rutas urbanas en Montería.",
+    category: "transporte",
+    type: "tiempo completo",
+    experience_required: "2 años",
+    salary_range: "$1.600.000 - $1.900.000 COP",
+    location_address: "Zona Industrial, Montería",
+    company: "Logística del Sinú",
+    posted_at: "2024-05-16",
+    is_active: true
+  },
+  {
+    id: 6,
+    title: "Contador Público",
+    description: "Firma de consultoría busca contador para manejo de cartera de clientes, declaraciones tributarias y revisión fiscal.",
+    category: "finanzas",
+    type: "tiempo completo",
+    experience_required: "3 años",
+    salary_range: "$2.800.000 - $3.500.000 COP",
+    location_address: "Centro, Montería",
+    company: "Consultores Asociados",
+    posted_at: "2024-05-15",
+    is_active: true
+  },
+  {
+    id: 7,
+    title: "Recepcionista Bilingüe",
+    description: "Hotel boutique busca recepcionista con dominio del inglés para atención a huéspedes extranjeros.",
+    category: "atención al cliente",
+    type: "tiempo completo",
+    experience_required: "1 año",
+    salary_range: "$1.700.000 - $2.000.000 COP",
+    location_address: "Barrio El Recuerdo, Montería",
+    company: "Hotel Boutique La Ceiba",
+    posted_at: "2024-05-14",
+    is_active: true
+  }
+]
