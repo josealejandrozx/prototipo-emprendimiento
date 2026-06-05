@@ -27,7 +27,19 @@
       </div>
     </header>
 
-    <main class="main">
+     <main class="main">
+      <!-- Sección de valoraciones (solo si hay datos) -->
+      <div v-if="!isEditing" class="rating-card">
+        <div class="rating-header">
+          <h3>Valoración</h3>
+          <span class="rating-avg">{{ formatRating(user?.rating_avg) }}</span>
+        </div>
+        <div class="stars-row">
+          <span v-for="i in 5" :key="i" class="star" :class="{ filled: i <= Math.round(user?.rating_avg || 0) }">★</span>
+        </div>
+        <p class="rating-count">Basado en {{ user?.rating_count || 0 }} valoraciones</p>
+        <!-- Aquí podrías listar las últimas reviews cuando tengas el endpoint -->
+      </div>
       <div class="profile-card">
         <div class="profile-header">
           <div class="profile-avatar">
@@ -46,8 +58,12 @@
           </button>
         </div>
 
-        <!-- Modo vista -->
+         <!-- Modo vista -->
         <div v-if="!isEditing" class="profile-content">
+          <!-- Indicador de visibilidad -->
+          <div class="visibility-indicator" :class="user?.visibility">
+            {{ user?.visibility === 'private' ? '🔒 Perfil privado' : '🌐 Perfil público' }}
+          </div>
           <!-- CANDIDATO - Vista -->
           <template v-if="user?.role === 'candidate'">
             <div class="info-section">
@@ -72,15 +88,16 @@
               </div>
             </div>
 
-            <div class="info-section">
+
+   <div class="info-section">
               <h3>Habilidades y experiencia</h3>
               <div class="info-item full-width">
                 <label>Habilidades</label>
                 <div class="skills-tags">
-                  <span v-for="skill in (user?.skills || '').split(',')" :key="skill" class="skill-tag" v-if="skill.trim()">
-                    {{ skill.trim() }}
+                  <span v-for="(skill, idx) in user?.skills" :key="idx" class="skill-tag">
+                    {{ skill.name || skill }}
                   </span>
-                  <span v-if="!user?.skills" class="no-data">No especificadas</span>
+                  <span v-if="!user?.skills || user.skills.length === 0" class="no-data">No especificadas</span>
                 </div>
               </div>
               <div class="info-item full-width">
@@ -109,8 +126,26 @@
                 </p>
                 <p v-else class="no-data">No especificado</p>
               </div>
-            </div>
-          </template>
+              </div>
+              
+
+              
+             <!-- ***** AQUÍ VA LA NUEVA SECCIÓN DE VALORACIONES ***** -->
+    <div class="info-section">
+      <h3>Valoraciones recibidas</h3>
+      <div v-if="myRatings.length === 0" class="no-data">Aún no tienes valoraciones.</div>
+      <div v-else class="ratings-list">
+        <div v-for="rating in myRatings" :key="rating.id" class="rating-item">
+          <div class="rating-header-item">
+            <span class="rating-score">★ {{ rating.score.toFixed(1) }}</span>
+            <span class="rating-date">{{ rating.createdAt }}</span>
+          </div>
+          <p class="rating-comment">{{ rating.comment }}</p>
+          <p class="rating-role">Valorado como {{ rating.roleRated === 'candidate' ? 'Trabajador' : 'Negocio' }}</p>
+        </div>
+      </div>
+    </div>
+  </template>
 
           <!-- EMPLEADOR - Vista -->
           <template v-else>
@@ -164,11 +199,37 @@
                 </div>
               </div>
             </div>
-          </template>
+            
+         <!-- ***** AQUÍ VA LA NUEVA SECCIÓN DE VALORACIONES ***** -->
+    <div class="info-section">
+      <h3>Valoraciones recibidas</h3>
+      <div v-if="myRatings.length === 0" class="no-data">Aún no tienes valoraciones.</div>
+      <div v-else class="ratings-list">
+        <div v-for="rating in myRatings" :key="rating.id" class="rating-item">
+          <div class="rating-header-item">
+            <span class="rating-score">★ {{ rating.score.toFixed(1) }}</span>
+            <span class="rating-date">{{ rating.createdAt }}</span>
+          </div>
+          <p class="rating-comment">{{ rating.comment }}</p>
+          <p class="rating-role">Valorado como {{ rating.roleRated === 'candidate' ? 'Trabajador' : 'Negocio' }}</p>
         </div>
+      </div>
+    </div>
+  </template>
+</div>
 
+       
         <!-- Modo edición -->
         <div v-else class="profile-edit-form">
+          <!-- Toggle de visibilidad (común a ambos roles) -->
+          <div class="form-group">
+            <label>Visibilidad del perfil</label>
+            <select v-model="editData.visibility">
+              <option value="public">Público (aparece en búsquedas)</option>
+              <option value="private">Privado (solo visible para ti)</option>
+            </select>
+          </div>
+
           <!-- CANDIDATO - Formulario edición -->
           <template v-if="user?.role === 'candidate'">
             <div class="form-row">
@@ -185,9 +246,22 @@
               <label>Dirección</label>
               <input type="text" v-model="editData.address">
             </div>
+            <!-- Habilidades como array (input dinámico) -->
             <div class="form-group">
-              <label>Habilidades (separadas por coma)</label>
-              <textarea v-model="editData.skills" rows="2" placeholder="Ej: Ventas, atención al cliente, inglés"></textarea>
+              <label>Habilidades</label>
+              <div class="skills-input-container">
+                <span v-for="(skill, idx) in editData.skills" :key="idx" class="skill-tag editable">
+                  {{ skill.name || skill }}
+                  <button type="button" class="remove-skill" @click="removeSkill(idx)">×</button>
+                </span>
+                <input
+                  v-model="newSkill"
+                  @keydown.enter.prevent="addSkill"
+                  @keydown.comma.prevent="addSkill"
+                  placeholder="Escribe y presiona Enter o coma para añadir"
+                  class="skill-input"
+                />
+              </div>
             </div>
             <div class="form-group">
               <label>Experiencia laboral</label>
@@ -268,21 +342,27 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import { useRatingsStore } from '../stores/ratings'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const user = authStore.user
 const isEditing = ref(false)
+const newSkill = ref('')
 
-// Datos para edición
+const ratingsStore = useRatingsStore()
+const myRatings = computed(() => ratingsStore.getRatingsForUser(user.value?.id))
+
+// Datos para edición (debe incluir visibility y skills como array)
 const editData = ref({
+  visibility: 'public',
   name: '',
   phone: '',
   address: '',
-  skills: '',
+  skills: [],
   experience: '',
   education: '',
   linkedin: '',
@@ -303,15 +383,21 @@ const getInitials = () => {
   return user?.name?.charAt(0) || 'U'
 }
 
+const formatRating = (val) => {
+  if (!val && val !== 0) return 'Nuevo'
+  return val.toFixed(1)
+}
+
 const toggleEditMode = () => {
   if (!isEditing.value) {
     // Cargar datos actuales al formulario
     if (user?.role === 'candidate') {
       editData.value = {
+        visibility: user.visibility || 'public',
         name: user.name || '',
         phone: user.phone || '',
         address: user.address || '',
-        skills: user.skills || '',
+        skills: user.skills ? [...user.skills] : [], // clonar array
         experience: user.experience || '',
         education: user.education || '',
         linkedin: user.linkedin || '',
@@ -326,6 +412,7 @@ const toggleEditMode = () => {
       }
     } else {
       editData.value = {
+        visibility: user.visibility || 'public',
         company_name: user.company_name || '',
         company_nit: user.company_nit || '',
         phone: user.phone || '',
@@ -336,7 +423,7 @@ const toggleEditMode = () => {
         employee_count: user.employee_count || '',
         name: '',
         address: '',
-        skills: '',
+        skills: [],
         experience: '',
         education: '',
         linkedin: '',
@@ -347,7 +434,26 @@ const toggleEditMode = () => {
   isEditing.value = !isEditing.value
 }
 
+const addSkill = () => {
+  const skillValue = newSkill.value.trim().replace(/,/g, '') // limpia comas sobrantes
+  if (skillValue) {
+    // Evitar duplicados
+    const exists = editData.value.skills.some(s =>
+      (s.name || s).toLowerCase() === skillValue.toLowerCase()
+    )
+    if (!exists) {
+      editData.value.skills.push(skillValue) // puedes guardar como string simple
+    }
+    newSkill.value = ''
+  }
+}
+
+const removeSkill = (index) => {
+  editData.value.skills.splice(index, 1)
+}
+
 const saveProfile = async () => {
+  // Asegúrate de que la store maneje el envío del array de skills y la visibilidad
   await authStore.updateProfile(editData.value)
   isEditing.value = false
   alert('Perfil actualizado correctamente')
@@ -359,10 +465,13 @@ const goBack = () => {
 </script>
 
 <style scoped>
+/* Mantenemos todos los estilos anteriores y añadimos los nuevos */
+
 .profile-container {
   min-height: 100vh;
   background: #f8fafc;
 }
+
 
 .header {
   background: white;
@@ -580,6 +689,173 @@ const goBack = () => {
   border-radius: 20px;
   font-size: 0.75rem;
   font-weight: 500;
+}
+.rating-card {
+  background: white;
+  border-radius: 16px;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid #e2e8f0;
+  text-align: center;
+}
+
+.rating-header {
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.rating-header h3 {
+  font-size: 1rem;
+  color: #1e293b;
+  font-weight: 600;
+}
+
+.rating-avg {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #4f46e5;
+}
+
+.stars-row {
+  display: flex;
+  justify-content: center;
+  gap: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.star {
+  font-size: 1.4rem;
+  color: #cbd5e1;
+  transition: color 0.2s;
+}
+
+.star.filled {
+  color: #fbbf24;
+}
+
+.rating-count {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.visibility-indicator {
+  text-align: center;
+  padding: 0.5rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-bottom: 1.5rem;
+}
+
+.visibility-indicator.public {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.visibility-indicator.private {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+/* Dentro del <style scoped> de PublicProfileView.vue */
+.ratings-section {
+  margin-top: 1.5rem;
+}
+
+.ratings-section h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.ratings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.rating-item {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 0.75rem;
+}
+
+.rating-header-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.rating-score {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #f59e0b;
+}
+
+.rating-date {
+  font-size: 0.7rem;
+  color: #94a3b8;
+}
+
+.rating-comment {
+  font-size: 0.85rem;
+  color: #334155;
+  margin-bottom: 0.25rem;
+}
+
+.rating-role {
+  font-size: 0.7rem;
+  color: #64748b;
+  font-style: italic;
+}
+
+
+/* Input de habilidades */
+.skills-input-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  min-height: 42px;
+  background: white;
+}
+
+.skill-tag.editable {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: #e0e7ff;
+  color: #4f46e5;
+  padding: 0.25rem 0.6rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.remove-skill {
+  background: none;
+  border: none;
+  color: #4f46e5;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0;
+  margin-left: 0.2rem;
+}
+
+.skill-input {
+  flex: 1;
+  min-width: 120px;
+  border: none;
+  outline: none;
+  font-size: 0.85rem;
+  padding: 0.25rem;
 }
 
 .profile-edit-form {
