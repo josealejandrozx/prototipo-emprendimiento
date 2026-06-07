@@ -889,7 +889,7 @@ const toggleApplications = (jobId) => {
 }
 
 const viewCandidateProfile = (application) => {
-  viewingCandidate.value = application
+  router.push(`/profile/${application.candidateId}`)
 }
 
 const closeCandidateModal = () => {
