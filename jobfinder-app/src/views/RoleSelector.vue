@@ -1,55 +1,112 @@
 <template>
   <div class="role-selector">
-    <div class="gradient-bg"></div>
+    <!-- Fondo decorativo -->
+    <div class="bg-pattern"></div>
+    
     <div class="container">
-      <div class="logo-section">
-        <div class="logo-icon">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="white" stroke="white" stroke-width="1.5"/>
-            <circle cx="12" cy="9" r="3" fill="#1e293b" stroke="white" stroke-width="1.5"/>
-          </svg>
+      <!-- Logo y título -->
+      <div class="logo-section fade-up">
+        <div class="logo-wrapper">
+          <div class="logo-icon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#1A56DB" stroke="#1A56DB" stroke-width="1.5"/>
+              <circle cx="12" cy="9" r="3" fill="#FFFFFF" stroke="#1A56DB" stroke-width="1.5"/>
+            </svg>
+          </div>
+          <h1>Work<span class="accent">Near</span></h1>
         </div>
-        <h1>WorkNear</h1>
-        <p>Conectamos talento local con oportunidades en Montería</p>
+        <p class="tagline">Conectamos talento local con oportunidades en Montería</p>
       </div>
 
+      <!-- Tarjetas de selección de rol -->
       <div class="cards-container">
-        <div class="role-card" @click="selectRole('candidate')">
-          <div class="card-gradient candidate-gradient"></div>
-          <div class="card-icon">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" fill="currentColor"/>
+        <!-- Tarjeta Candidato -->
+        <div class="role-card candidate-card fade-up delay-1" @click="selectRole('candidate')">
+          <div class="card-glow"></div>
+          <div class="card-icon candidate">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
             </svg>
           </div>
           <h2>Busco empleo</h2>
-          <p>Encuentra oportunidades laborales cerca de ti</p>
+          <p>Encuentra oportunidades laborales cerca de ti y crece profesionalmente</p>
           <div class="features">
-            <span>✓ Búsqueda por ubicación</span>
-            <span>✓ Filtros avanzados</span>
-            <span>✓ Chat con empleadores</span>
+            <div class="feature">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              <span>Búsqueda por ubicación</span>
+            </div>
+            <div class="feature">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              <span>Filtros avanzados</span>
+            </div>
+            <div class="feature">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              <span>Chat con empleadores</span>
+            </div>
           </div>
-          <button class="btn btn-candidate">Continuar →</button>
+          <button class="btn-select candidate-btn">
+            Continuar
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="5" y1="12" x2="19" y2="12"/>
+              <polyline points="12 5 19 12 12 19"/>
+            </svg>
+          </button>
         </div>
 
-        <div class="role-card" @click="selectRole('employer')">
-          <div class="card-gradient employer-gradient"></div>
-          <div class="card-icon">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M21 6h-7.59l3.29-3.29L16 2l-4 4-4-4-.71.71L10.59 6H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2z" fill="currentColor"/>
+        <!-- Tarjeta Empleador -->
+        <div class="role-card employer-card fade-up delay-2" @click="selectRole('employer')">
+          <div class="card-glow"></div>
+          <div class="card-icon employer">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="2" y="7" width="20" height="14" rx="2"/>
+              <line x1="16" y1="21" x2="16" y2="15"/>
+              <line x1="8" y1="21" x2="8" y2="15"/>
             </svg>
           </div>
           <h2>Soy empleador</h2>
-          <p>Publica vacantes y encuentra talento calificado</p>
+          <p>Publica vacantes y encuentra el talento calificado que tu empresa necesita</p>
           <div class="features">
-            <span>✓ Publicación de vacantes</span>
-            <span>✓ Gestión de candidatos</span>
-            <span>✓ Chat integrado</span>
+            <div class="feature">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              <span>Publicación de vacantes</span>
+            </div>
+            <div class="feature">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              <span>Gestión de candidatos</span>
+            </div>
+            <div class="feature">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              <span>Chat integrado</span>
+            </div>
           </div>
-          <button class="btn btn-employer">Continuar →</button>
+          <button class="btn-select employer-btn">
+            Continuar
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="5" y1="12" x2="19" y2="12"/>
+              <polyline points="12 5 19 12 12 19"/>
+            </svg>
+          </button>
         </div>
       </div>
 
-      <p class="footer-text">Encuentra el talento o empleo que necesitas en Montería y el Sinú</p>
+      <!-- Footer -->
+      <p class="footer-text fade-up delay-3">
+        Encuentra el talento o empleo que necesitas en Montería y el Sinú
+      </p>
     </div>
   </div>
 </template>
@@ -68,190 +125,265 @@ const selectRole = (role) => {
 </script>
 
 <style scoped>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 .role-selector {
   min-height: 100vh;
-  position: relative;
+  background: #F8FAFC;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f2f4f8;
+  position: relative;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  overflow: hidden;
 }
 
-.gradient-bg {
-  position: fixed;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle at 30% 20%, rgba(99, 102, 241, 0.08) 0%, rgba(15, 23, 42, 0.98) 100%);
-  z-index: 0;
+/* Fondo con patrón */
+.bg-pattern {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(circle at 20% 80%, rgba(26, 86, 219, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(26, 86, 219, 0.03) 0%, transparent 50%);
+  pointer-events: none;
 }
 
 .container {
   position: relative;
   z-index: 1;
-  max-width: 1100px;
+  max-width: 1200px;
   width: 90%;
   margin: 0 auto;
   padding: 2rem;
 }
 
+/* Logo Section */
 .logo-section {
   text-align: center;
   margin-bottom: 3rem;
 }
 
+.logo-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
 .logo-icon {
-  width: 80px;
-  height: 80px;
-  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-  border-radius: 24px;
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, #1A56DB, #0D2B66);
+  border-radius: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 1rem;
-  box-shadow: 0 20px 35px -10px rgba(79, 70, 229, 0.3);
+  box-shadow: 0 10px 25px -5px rgba(26, 86, 219, 0.3);
 }
 
-.logo-section h1 {
+.logo-wrapper h1 {
   font-size: 2.5rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #1E293B;
   letter-spacing: -0.02em;
-  margin-bottom: 0.5rem;
 }
 
-.logo-section p {
-  color: #475569;
+.logo-wrapper h1 .accent {
+  color: #1A56DB;
+}
+
+.tagline {
   font-size: 1rem;
+  color: #64748B;
 }
 
+/* Cards Container */
 .cards-container {
   display: flex;
-  gap: 1.5rem;
+  gap: 2rem;
   justify-content: center;
   flex-wrap: wrap;
   margin-bottom: 3rem;
 }
 
+/* Role Cards */
 .role-card {
   position: relative;
-  background: white;
+  background: #FFFFFF;
   border-radius: 32px;
   padding: 2rem;
-  width: 320px;
+  width: 360px;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid #E2E8F0;
   overflow: hidden;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
 }
 
 .role-card:hover {
   transform: translateY(-8px);
-  box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.15);
 }
 
-.card-gradient {
+.candidate-card:hover {
+  box-shadow: 0 25px 40px -12px rgba(26, 86, 219, 0.25);
+  border-color: #1A56DB;
+}
+
+.employer-card:hover {
+  box-shadow: 0 25px 40px -12px rgba(26, 86, 219, 0.25);
+  border-color: #1A56DB;
+}
+
+.card-glow {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   height: 4px;
+  background: linear-gradient(90deg, #1A56DB, #0D2B66);
+  opacity: 0;
+  transition: opacity 0.3s;
 }
 
-.candidate-gradient {
-  background: linear-gradient(90deg, #6366f1, #8b5cf6);
+.role-card:hover .card-glow {
+  opacity: 1;
 }
 
-.employer-gradient {
-  background: linear-gradient(90deg, #f59e0b, #ef4444);
-}
-
+/* Card Icons */
 .card-icon {
-  width: 60px;
-  height: 60px;
+  width: 64px;
+  height: 64px;
   border-radius: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 1.5rem;
+  transition: all 0.3s;
 }
 
-.role-card:first-child .card-icon {
-  background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
-  color: #4f46e5;
+.card-icon.candidate {
+  background: #EFF6FF;
+  color: #1A56DB;
 }
 
-.role-card:last-child .card-icon {
-  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-  color: #d97706;
+.card-icon.employer {
+  background: #EFF6FF;
+  color: #1A56DB;
+}
+
+.role-card:hover .card-icon.candidate,
+.role-card:hover .card-icon.employer {
+  transform: scale(1.05);
 }
 
 .role-card h2 {
   font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  color: #0f172a;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  color: #1E293B;
 }
 
 .role-card p {
-  color: #64748b;
+  color: #64748B;
   font-size: 0.875rem;
-  margin-bottom: 1.5rem;
   line-height: 1.5;
+  margin-bottom: 1.5rem;
 }
 
+/* Features */
 .features {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.75rem;
   margin-bottom: 1.5rem;
 }
 
-.features span {
-  font-size: 0.8rem;
-  color: #475569;
+.feature {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  font-size: 0.8rem;
+  color: #475569;
 }
 
-.btn {
+.feature svg {
+  color: #1A56DB;
+  flex-shrink: 0;
+}
+
+/* Buttons */
+.btn-select {
   width: 100%;
-  padding: 0.75rem;
+  padding: 0.875rem;
   border: none;
-  border-radius: 16px;
+  border-radius: 40px;
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
-.btn-candidate {
-  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-  color: white;
+.candidate-btn {
+  background: #1A56DB;
+  color: #FFFFFF;
 }
 
-.btn-employer {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  color: white;
-}
-
-.btn:hover {
+.candidate-btn:hover {
+  background: #0D2B66;
   transform: scale(1.02);
-  filter: brightness(1.05);
 }
 
+.employer-btn {
+  background: #1A56DB;
+  color: #FFFFFF;
+}
+
+.employer-btn:hover {
+  background: #0D2B66;
+  transform: scale(1.02);
+}
+
+/* Footer */
 .footer-text {
   text-align: center;
-  color: #94a3b8;
-  font-size: 0.75rem;
+  color: #94A3B8;
+  font-size: 0.8rem;
   margin-top: 2rem;
 }
 
+/* Animations */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-up {
+  animation: fadeUp 0.6s ease-out forwards;
+  opacity: 0;
+}
+
+.delay-1 { animation-delay: 0.1s; }
+.delay-2 { animation-delay: 0.2s; }
+.delay-3 { animation-delay: 0.3s; }
+
+/* Responsive */
 @media (max-width: 768px) {
   .container {
     padding: 1rem;
@@ -259,11 +391,23 @@ const selectRole = (role) => {
   
   .role-card {
     width: 100%;
-    max-width: 340px;
+    max-width: 400px;
   }
   
-  .logo-section h1 {
+  .logo-wrapper h1 {
     font-size: 2rem;
+  }
+  
+  .tagline {
+    font-size: 0.875rem;
+  }
+  
+  .role-card h2 {
+    font-size: 1.25rem;
+  }
+  
+  .cards-container {
+    gap: 1rem;
   }
 }
 </style>

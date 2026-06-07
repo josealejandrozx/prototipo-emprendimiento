@@ -4,53 +4,90 @@ import AuthView from '../views/AuthView.vue'
 import CandidateDashboard from '../views/CandidateDashboard.vue'
 import EmployerDashboard from '../views/EmployerDashboard.vue'
 import ProfileView from '../views/ProfileView.vue'
-import SearchView from '../views/SearchWorkers.vue' // Ajusta el nombre según tu archivo
-import PublicProfileView from '../views/PublicProfileView.vue' // Si tienes este componente
+import SearchWorkers from '../views/SearchWorkers.vue'
+import PublicProfileView from '../views/PublicProfileView.vue'
 
 const routes = [
-  { path: '/', name: 'RoleSelector', component: RoleSelector },
-  { path: '/auth', name: 'AuthView', component: AuthView },
   { 
-    path: '/dashboard', 
-    name: 'Dashboard',
-    component: null, // Se redirige según el rol
-    beforeEnter: (to, from, next) => {
-      const user = JSON.parse(localStorage.getItem('user') || '{}')
-      if (user.role === 'candidate') {
-        next('/candidate-dashboard')
-      } else if (user.role === 'employer') {
-        next('/employer-dashboard')
-      } else {
-        next('/')
-      }
-    }
+    path: '/', 
+    name: 'RoleSelector', 
+    component: RoleSelector 
   },
-  { path: '/candidate-dashboard', name: 'CandidateDashboard', component: CandidateDashboard, meta: { requiresAuth: true, role: 'candidate' } },
-  { path: '/employer-dashboard', name: 'EmployerDashboard', component: EmployerDashboard, meta: { requiresAuth: true, role: 'employer' } },
-  { path: '/profile', name: 'ProfileView', component: ProfileView, meta: { requiresAuth: true } },
-  { path: '/search', name: 'SearchView', component: SearchView, meta: { requiresAuth: true } },
-  { path: '/profile/:id', name: 'PublicProfileView', component: PublicProfileView, meta: { requiresAuth: true } }
+  { 
+    path: '/auth', 
+    name: 'AuthView', 
+    component: AuthView 
+  },
+  { 
+    path: '/candidate-dashboard', 
+    name: 'CandidateDashboard', 
+    component: CandidateDashboard,
+    meta: { requiresAuth: true, role: 'candidate' }
+  },
+  { 
+    path: '/employer-dashboard', 
+    name: 'EmployerDashboard', 
+    component: EmployerDashboard,
+    meta: { requiresAuth: true, role: 'employer' }
+  },
+  { 
+    path: '/profile', 
+    name: 'ProfileView', 
+    component: ProfileView,
+    meta: { requiresAuth: true }
+  },
+  { 
+    path: '/profile/:id', 
+    name: 'PublicProfileView', 
+    component: PublicProfileView,
+    meta: { requiresAuth: true }
+  },
+  { 
+    path: '/search', 
+    name: 'SearchWorkers', 
+    component: SearchWorkers,
+    meta: { requiresAuth: true, role: 'employer' }
+  }
 ]
 
-// Guard para autenticación
-router.beforeEach((to, from, next) => {
-  const user = JSON.parse(localStorage.getItem('user') || '{}')
-  const isAuthenticated = !!user.id
+const router = createRouter({
+  history: createWebHistory(),
+  routes
+})
+
+// ✅ Guard de navegación moderno (sin next() callback)
+router.beforeEach((to, from) => {
+  const userStr = localStorage.getItem('user')
+  const user = userStr ? JSON.parse(userStr) : null
+  const isAuthenticated = user && user.id
   
+  // Si la ruta requiere autenticación y no está autenticado
   if (to.meta?.requiresAuth && !isAuthenticated) {
-    next('/')
-  } else if (to.meta?.role && user.role !== to.meta.role) {
-    // Redirigir según el rol si intenta acceder al dashboard incorrecto
-    if (user.role === 'candidate') {
-      next('/candidate-dashboard')
-    } else if (user.role === 'employer') {
-      next('/employer-dashboard')
-    } else {
-      next('/')
-    }
-  } else {
-    next()
+    return '/'
   }
+  
+  // Si está autenticado y trata de ir a rutas públicas (/, /auth)
+  if (isAuthenticated && (to.path === '/' || to.path === '/auth')) {
+    if (user.role === 'candidate') {
+      return '/candidate-dashboard'
+    } else if (user.role === 'employer') {
+      return '/employer-dashboard'
+    }
+    return '/'
+  }
+  
+  // Verificar si la ruta requiere un rol específico
+  if (to.meta?.role && user.role !== to.meta.role) {
+    if (user.role === 'candidate') {
+      return '/candidate-dashboard'
+    } else if (user.role === 'employer') {
+      return '/employer-dashboard'
+    }
+    return '/'
+  }
+  
+  // Continuar normalmente
+  return true
 })
 
 export default router

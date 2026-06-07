@@ -10,128 +10,97 @@ export const useAuthStore = defineStore('auth', () => {
     tempRole.value = role
   }
 
-  const login = async (email, password, role) => {
-    // --- SIMULACIÓN DE LOGIN (reemplazar con llamada a API) ---
-    if (role === 'employer') {
-      user.value = {
-        id: 1,
-        name: 'Carlos Rodríguez',
-        email: "carlos@techsolutions.com",
-        role: 'employer',
-        phone: '3001234567',
-        company_name: 'Tech Solutions SAS',
-        company_nit: '900123456-1',
-        company_description: 'Empresa de tecnología especializada en desarrollo de software.',
-        company_website: 'techsolutions.com',
-        company_address: 'Parque Lineal, Montería',
-        founded_year: '2018',
-        employee_count: '10-50',
-        // NUEVOS CAMPOS
-        visibility: 'public',
-        skills: [],
-        rating_avg: 4.5,
-        rating_count: 12,
-        bio: 'Apasionado por la tecnología y los buenos equipos.'
+  const login = async (email, password) => {
+    try {
+      const users = JSON.parse(localStorage.getItem('users') || '[]')
+      const foundUser = users.find(u => u.email === email && u.password === password)
+      
+      if (!foundUser) {
+        return false
       }
-    } else {
-      user.value = {
-        id: 2,
-        name: 'Ana María González',
-        email: 'ana@example.com',
-        role: 'candidate',
-        phone: '3007654321',
-        address: 'Barrio Los Colores, Montería',
-        skills: [
-          { name: 'Ventas' },
-          { name: 'Atención al cliente' },
-          { name: 'Trabajo en equipo' }
-        ],
-        experience: '5 años en ventas retail',
-        education: 'Administración de Empresas - Universidad de Córdoba',
-        linkedin: 'linkedin.com/in/anamaria',
-        portfolio: '',
-        // NUEVOS CAMPOS
-        visibility: 'public',
-        rating_avg: 4.8,
-        rating_count: 5,
-        bio: 'Vendedora creativa con experiencia en retail.'
-      }
+      
+      const { password: _, ...userWithoutPassword } = foundUser
+      user.value = userWithoutPassword
+      isAuthenticated.value = true
+      localStorage.setItem('user', JSON.stringify(userWithoutPassword))
+      
+      return true
+    } catch (error) {
+      console.error('Error en login:', error)
+      return false
     }
-    isAuthenticated.value = true
-    localStorage.setItem('user', JSON.stringify(user.value))
-    return true
   }
 
   const register = async (userData) => {
-    // Procesar skills: acepta string separado por comas o array
-    let skills = []
-    if (userData.skills) {
-      if (typeof userData.skills === 'string') {
-        skills = userData.skills
-          .split(',')
-          .map(s => ({ name: s.trim() }))
-          .filter(s => s.name)
-      } else if (Array.isArray(userData.skills)) {
-        skills = userData.skills.map(s =>
-          typeof s === 'string' ? { name: s } : s
-        )
+    try {
+      const users = JSON.parse(localStorage.getItem('users') || '[]')
+      
+      if (users.some(u => u.email === userData.email)) {
+        return false
       }
-    }
-
-    const baseUser = {
-      id: Date.now(),               // temporal, el backend generará el ID real
-      role: userData.role,
-      visibility: 'public',         // por defecto público
-      skills: skills,
-      rating_avg: 0,
-      rating_count: 0,
-      bio: userData.bio || ''
-    }
-
-    if (userData.role === 'employer') {
-      user.value = {
-        ...baseUser,
-        name: userData.name,
+      
+      const newUser = {
+        id: Date.now(),
+        role: userData.role,
+        name: userData.name || '',
         email: userData.email,
-        phone: userData.phone || '',
-        company_name: userData.company_name || '',
-        company_nit: userData.company_nit || '',
-        company_description: userData.company_description || '',
-        company_website: userData.company_website || '',
-        company_address: userData.address || 'Montería',
-        founded_year: '',
-        employee_count: ''
-      }
-    } else {
-      user.value = {
-        ...baseUser,
-        name: userData.name,
-        email: userData.email,
+        password: userData.password,
         phone: userData.phone || '',
         address: userData.address || 'Montería',
+        skills: userData.skills || [],
         experience: userData.experience || '',
         education: userData.education || '',
         linkedin: userData.linkedin || '',
-        portfolio: userData.portfolio || ''
+        company_name: userData.company_name || '',
+        company_description: userData.company_description || '',
+        company_website: userData.company_website || '',
+        employee_count: userData.employee_count || '',
+        founded_year: userData.founded_year || '',
+        visibility: 'public',
+        rating_avg: 0,
+        rating_count: 0,
+        bio: userData.bio || '',
+        createdAt: new Date().toISOString()
       }
-    }
 
-    isAuthenticated.value = true
-    localStorage.setItem('user', JSON.stringify(user.value))
-    return true
+      users.push(newUser)
+      localStorage.setItem('users', JSON.stringify(users))
+      
+      const { password: _, ...userWithoutPassword } = newUser
+      user.value = userWithoutPassword
+      isAuthenticated.value = true
+      localStorage.setItem('user', JSON.stringify(userWithoutPassword))
+      
+      return true
+    } catch (error) {
+      console.error('Error en registro:', error)
+      return false
+    }
   }
 
   const updateProfile = async (updatedData) => {
-    // Asegurar que skills sea array de objetos si viene como array de strings
-    if (updatedData.skills && Array.isArray(updatedData.skills)) {
-      updatedData.skills = updatedData.skills.map(s =>
-        typeof s === 'string' ? { name: s } : s
-      )
+    try {
+      if (updatedData.skills && Array.isArray(updatedData.skills)) {
+        updatedData.skills = updatedData.skills.map(s =>
+          typeof s === 'string' ? { name: s } : s
+        )
+      }
+      
+      user.value = { ...user.value, ...updatedData }
+      localStorage.setItem('user', JSON.stringify(user.value))
+      
+      const users = JSON.parse(localStorage.getItem('users') || '[]')
+      const userIndex = users.findIndex(u => u.id === user.value.id)
+      if (userIndex !== -1) {
+        users[userIndex] = { ...users[userIndex], ...updatedData }
+        localStorage.setItem('users', JSON.stringify(users))
+      }
+      
+      return true
+    } catch (error) {
+      console.error('Error al actualizar perfil:', error)
+      return false
     }
-    // Fusionar con los datos actuales y guardar
-    user.value = { ...user.value, ...updatedData }
-    localStorage.setItem('user', JSON.stringify(user.value))
-    return true
   }
 
   const logout = () => {
@@ -139,8 +108,6 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated.value = false
     tempRole.value = null
     localStorage.removeItem('user')
-    localStorage.removeItem('applications')
-    localStorage.removeItem('receivedApplications')
   }
 
   const checkAuth = () => {
@@ -148,12 +115,11 @@ export const useAuthStore = defineStore('auth', () => {
     if (storedUser) {
       try {
         user.value = JSON.parse(storedUser)
-        // Migración de datos antiguos (sin los nuevos campos)
         if (!user.value.visibility) user.value.visibility = 'public'
         if (user.value.rating_avg == null) user.value.rating_avg = 0
         if (user.value.rating_count == null) user.value.rating_count = 0
         if (!user.value.bio) user.value.bio = ''
-        // Convertir skills de string a array si fuera necesario
+        
         if (typeof user.value.skills === 'string') {
           user.value.skills = user.value.skills
             .split(',')
