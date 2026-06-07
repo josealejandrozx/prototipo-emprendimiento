@@ -30,6 +30,7 @@
                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
                     <polyline points="22 4 12 14.01 9 11.01"/>
                   </svg>
+                  
                   <span>Mis postulaciones</span>
                 </button>
                 <span class="user-avatar">{{ user.name?.charAt(0) || 'U' }}</span>
@@ -39,6 +40,13 @@
                     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l4-4-4-4M20 13H9"/>
                   </svg>
                 </button>
+                <router-link to="/search" class="nav-link">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <circle cx="11" cy="11" r="8"/>
+    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+  </svg>
+  <span>Buscar Usuario</span>
+</router-link>
               </div>
             </div>
           </div>
@@ -251,6 +259,13 @@
                     <circle cx="12" cy="7" r="4"/>
                   </svg>
                 </router-link>
+                <router-link to="/search" class="nav-link">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <circle cx="11" cy="11" r="8"/>
+    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+  </svg>
+  <span>Buscar talento</span>
+</router-link>
                 <span class="user-avatar">{{ user.company_name?.charAt(0) || user.name?.charAt(0) || 'E' }}</span>
                 <span class="user-name">{{ user.company_name?.split(' ')[0] || user.name?.split(' ')[0] || 'Empresa' }}</span>
                 <button class="logout-btn" @click="handleLogout">
@@ -491,7 +506,17 @@
           <div class="info-section">
             <h4>Habilidades</h4>
             <div class="skills-tags">
-              <span v-for="skill in (viewingCandidate.candidateSkills || '').split(',')" :key="skill" class="skill-tag">{{ skill.trim() }}</span>
+              <template v-if="Array.isArray(viewingCandidate.candidateSkills)">
+  <span v-for="skill in viewingCandidate.candidateSkills" :key="skill.name || skill" class="skill-tag">
+    {{ skill.name || skill }}
+  </span>
+</template>
+<template v-else>
+  <span v-for="skill in (viewingCandidate.candidateSkills || '').split(',')" :key="skill" class="skill-tag" v-if="skill.trim()">
+    {{ skill.trim() }}
+  </span>
+</template>
+<span v-if="!viewingCandidate.candidateSkills || viewingCandidate.candidateSkills.length === 0" class="no-data">No especificadas</span>
               <span v-if="!viewingCandidate.candidateSkills" class="no-data">No especificadas</span>
             </div>
           </div>
@@ -740,7 +765,9 @@ const applyAndChat = () => {
       candidateId: user.value?.id,
       candidatePhone: user.value?.phone,
       candidateEmail: user.value?.email,
-      candidateSkills: user.value?.skills,
+        candidateSkills: Array.isArray(user.value?.skills) 
+    ? user.value.skills 
+    : (typeof user.value?.skills === 'string' ? user.value.skills.split(',').map(s => ({ name: s.trim() })) : []),
       candidateExperience: user.value?.experience,
       candidateEducation: user.value?.education,
       appliedAt: new Date().toISOString().split('T')[0],
@@ -754,7 +781,16 @@ const applyAndChat = () => {
     alert(`✅ Has aplicado a: ${job.title}\n\nLa empresa ha sido notificada.`)
   }
 }
-
+const savedReceived = localStorage.getItem('receivedApplications')
+if (savedReceived) {
+  receivedApplications.value = JSON.parse(savedReceived)
+  // Normalizar skills antiguas
+  receivedApplications.value.forEach(app => {
+    if (typeof app.candidateSkills === 'string') {
+      app.candidateSkills = app.candidateSkills.split(',').map(s => ({ name: s.trim() })).filter(s => s.name)
+    }
+  })
+}
 // CANCELAR POSTULACIÓN
 const cancelApplication = (application) => {
   if (confirm(`¿Estás seguro de que quieres cancelar tu postulación a "${application.jobTitle}"?`)) {
