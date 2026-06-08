@@ -130,12 +130,13 @@
         </transition>
       </div>
 
+      <!-- Vacantes disponibles -->
       <div class="results-header fade-up delay-3">
         <h3>Vacantes disponibles</h3>
-        <span class="results-count">{{ filteredJobs.length }} oportunidades</span>
+        <span class="results-count">{{ availableJobs.length }} oportunidades</span>
       </div>
 
-      <div v-if="filteredJobs.length === 0" class="empty-state">
+      <div v-if="availableJobs.length === 0" class="empty-state">
         <div class="empty-icon">
           <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
             <circle cx="12" cy="12" r="10"/>
@@ -149,7 +150,7 @@
       </div>
 
       <div v-else class="jobs-grid">
-        <div v-for="(job, index) in filteredJobs" :key="job.id" class="job-card" :style="{ animationDelay: `${0.05 * index}s` }">
+        <div v-for="(job, index) in availableJobs" :key="job.id" class="job-card" :style="{ animationDelay: `${0.05 * index}s` }">
           <div class="job-card-header">
             <div class="company-logo">
               <span>{{ job.company?.charAt(0) || 'E' }}</span>
@@ -184,12 +185,6 @@
               </svg>
               {{ formatSalary(job.salary_range) }}
             </span>
-            <span v-if="job.distance" class="meta-item distance">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <circle cx="12" cy="12" r="10"/>
-              </svg>
-              {{ job.distance }} km
-            </span>
           </div>
           
           <button class="btn-apply" @click="applyJob(job)">
@@ -199,6 +194,51 @@
             </svg>
             Aplicar ahora
           </button>
+        </div>
+      </div>
+
+      <!-- Mis postulaciones -->
+      <div class="applications-section fade-up delay-3">
+        <div class="section-header">
+          <h3>Mis postulaciones</h3>
+          <span class="badge">{{ myApplications.length }} aplicadas</span>
+        </div>
+
+        <div v-if="myApplications.length === 0" class="empty-applications">
+          <div class="empty-icon">📋</div>
+          <p>Aún no has aplicado a ninguna vacante</p>
+          <p class="empty-hint">Explora las vacantes disponibles y postúlate</p>
+        </div>
+
+        <div v-else class="applications-list">
+          <div v-for="app in myApplications" :key="app.id" class="application-card" :class="app.status">
+            <div class="application-header">
+              <div class="company-logo small">
+                <span>{{ app.company?.charAt(0) || 'E' }}</span>
+              </div>
+              <div class="application-info">
+                <h4>{{ app.jobTitle }}</h4>
+                <p class="company-name">{{ app.company }}</p>
+                <p class="applied-date">Aplicaste el {{ app.appliedAt }}</p>
+              </div>
+              <div class="application-status">
+                <span :class="['status-badge', app.status]">
+                  {{ getStatusText(app.status) }}
+                </span>
+              </div>
+            </div>
+            <div class="application-actions" v-if="app.status === 'accepted'">
+              <button class="btn-contact-employer" @click="contactEmployer(app)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+                Contactar empleador
+              </button>
+            </div>
+            <div class="application-feedback" v-if="app.feedback">
+              <p>{{ app.feedback }}</p>
+            </div>
+          </div>
         </div>
       </div>
     </main>
@@ -241,11 +281,13 @@ import { jobs as initialJobs } from '../data/jobs'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const user = computed(() => authStore.user)
 
 const allJobs = ref([])
 const showFilters = ref(false)
 const showModal = ref(false)
 const activeFilters = ref(false)
+const myApplications = ref([])
 
 const filters = ref({
   category: '',
@@ -256,48 +298,57 @@ const filters = ref({
   maxSalary: ''
 })
 
-const tempFilters = ref({ ...filters.value })
-
 const categories = [
   { value: 'tecnología', label: 'Tecnología' },
   { value: 'ventas', label: 'Ventas' },
   { value: 'construcción', label: 'Construcción' },
   { value: 'salud', label: 'Salud' },
-  { value: 'educación', label: 'Educación' }
+  { value: 'educación', label: 'Educación' },
+  { value: 'administrativo', label: 'Administrativo' },
+  { value: 'comercio', label: 'Comercio' },
+  { value: 'servicios', label: 'Servicios' },
+  { value: 'marketing', label: 'Marketing' },
+  { value: 'transporte', label: 'Transporte' }
 ]
 
 const jobTypes = [
   { value: 'tiempo completo', label: 'Tiempo completo' },
-  { value: 'medio tiempo', label: 'Medio tiempo' }
+  { value: 'medio tiempo', label: 'Medio tiempo' },
+  { value: 'freelance', label: 'Freelance' },
+  { value: 'temporal', label: 'Temporal' },
+  { value: 'por horas', label: 'Por horas' },
+  { value: 'remoto', label: 'Remoto' }
 ]
 
-const filteredJobs = computed(() => {
+const availableJobs = computed(() => {
   let result = [...allJobs.value]
   
-  if (!activeFilters.value) return result.filter(j => j.is_active !== false)
+  // Filtrar vacantes que no estén postuladas por el usuario actual
+  const appliedJobIds = myApplications.value.map(app => app.jobId)
+  result = result.filter(job => job.is_active !== false && !appliedJobIds.includes(job.id))
   
-  result = result.filter(job => job.is_active !== false)
-  
-  if (filters.value.category) {
-    result = result.filter(j => j.category === filters.value.category)
-  }
-  if (filters.value.type) {
-    result = result.filter(j => j.type === filters.value.type)
-  }
-  if (filters.value.experience) {
-    result = result.filter(j => j.experience_required === filters.value.experience)
-  }
-  if (filters.value.minSalary) {
-    result = result.filter(j => {
-      const salary = extractSalaryNumber(j.salary_range)
-      return salary >= Number(filters.value.minSalary)
-    })
-  }
-  if (filters.value.maxSalary) {
-    result = result.filter(j => {
-      const salary = extractSalaryNumber(j.salary_range)
-      return salary <= Number(filters.value.maxSalary)
-    })
+  if (activeFilters.value) {
+    if (filters.value.category) {
+      result = result.filter(j => j.category === filters.value.category)
+    }
+    if (filters.value.type) {
+      result = result.filter(j => j.type === filters.value.type)
+    }
+    if (filters.value.experience) {
+      result = result.filter(j => j.experience_required === filters.value.experience)
+    }
+    if (filters.value.minSalary) {
+      result = result.filter(j => {
+        const salary = extractSalaryNumber(j.salary_range)
+        return salary >= Number(filters.value.minSalary)
+      })
+    }
+    if (filters.value.maxSalary) {
+      result = result.filter(j => {
+        const salary = extractSalaryNumber(j.salary_range)
+        return salary <= Number(filters.value.maxSalary)
+      })
+    }
   }
   
   return result
@@ -330,7 +381,6 @@ const clearFilters = () => {
     minSalary: '',
     maxSalary: ''
   }
-  tempFilters.value = { ...filters.value }
   activeFilters.value = false
 }
 
@@ -339,46 +389,65 @@ const applyFilters = () => {
   showFilters.value = false
 }
 
+const getStatusText = (status) => {
+  if (status === 'accepted') return 'Aceptada'
+  if (status === 'rejected') return 'Rechazada'
+  return 'En revisión'
+}
+
+const loadMyApplications = () => {
+  const allApps = JSON.parse(localStorage.getItem('candidate_applications') || '[]')
+  const currentUser = authStore.user
+  if (currentUser) {
+    myApplications.value = allApps.filter(app => app.candidateId === currentUser.id)
+  }
+}
+
+const contactEmployer = (application) => {
+  alert(`📧 Contactando a ${application.company}\n\nPróximamente podrás comunicarte directamente con el empleador.`)
+}
+
 const applyJob = (job) => {
-  // Verificar si ya aplicó a esta vacante
+  const currentUser = authStore.user
+  
+  if (!currentUser || !currentUser.id) {
+    alert('Debes iniciar sesión para postularte')
+    router.push('/auth')
+    return
+  }
+  
   const existingApplications = JSON.parse(localStorage.getItem('candidate_applications') || '[]')
-  const alreadyApplied = existingApplications.some(app => app.jobId === job.id)
+  const alreadyApplied = existingApplications.some(app => app.jobId === job.id && app.candidateId === currentUser.id)
   
   if (alreadyApplied) {
     alert('Ya has aplicado a esta vacante anteriormente')
     return
   }
   
-  // Crear nueva postulación
   const newApplication = {
     id: Date.now(),
     jobId: job.id,
     jobTitle: job.title,
     company: job.company,
-    companyId: job.companyId || job.id,
     appliedAt: new Date().toLocaleDateString(),
     status: 'pending',
-    candidateId: user.value?.id,
-    candidateName: user.value?.name,
-    candidateEmail: user.value?.email,
-    candidatePhone: user.value?.phone,
-    candidateSkills: user.value?.skills || []
+    candidateId: currentUser.id,
+    candidateName: currentUser.name,
+    candidateEmail: currentUser.email,
+    candidatePhone: currentUser.phone || '',
+    candidateSkills: currentUser.skills || []
   }
   
   existingApplications.push(newApplication)
   localStorage.setItem('candidate_applications', JSON.stringify(existingApplications))
   
-  // También guardar en las postulaciones recibidas del empleador
   const receivedApplications = JSON.parse(localStorage.getItem('receivedApplications') || '[]')
-  receivedApplications.push({
-    ...newApplication,
-    jobId: job.id,
-    jobTitle: job.title,
-    company: job.company
-  })
+  receivedApplications.push({ ...newApplication })
   localStorage.setItem('receivedApplications', JSON.stringify(receivedApplications))
   
+  loadMyApplications()
   showModal.value = true
+  setTimeout(() => { showModal.value = false }, 2000)
 }
 
 const handleLogout = () => {
@@ -394,6 +463,7 @@ onMounted(() => {
     allJobs.value = [...initialJobs]
     localStorage.setItem('global_jobs', JSON.stringify(allJobs.value))
   }
+  loadMyApplications()
 })
 </script>
 
@@ -736,6 +806,7 @@ select, .salary-input {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
   gap: 1.5rem;
+  margin-bottom: 2rem;
 }
 
 .job-card {
@@ -827,10 +898,6 @@ select, .salary-input {
   font-weight: 500;
 }
 
-.meta-item.distance {
-  color: #1A56DB;
-}
-
 .btn-apply {
   width: 100%;
   padding: 0.75rem;
@@ -850,6 +917,179 @@ select, .salary-input {
 
 .btn-apply:hover {
   background: #0D2B66;
+}
+
+/* Applications Section */
+.applications-section {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-top: 2rem;
+  border: 1px solid #E2E8F0;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.section-header h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1E293B;
+}
+
+.badge {
+  background: #EFF6FF;
+  color: #1A56DB;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.empty-applications {
+  text-align: center;
+  padding: 2rem;
+  background: #F8FAFC;
+  border-radius: 12px;
+}
+
+.empty-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.empty-applications p {
+  color: #64748B;
+}
+
+.empty-hint {
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+}
+
+.applications-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.application-card {
+  background: #F8FAFC;
+  border-radius: 12px;
+  padding: 1rem;
+  border-left: 4px solid #CBD5E1;
+  transition: all 0.2s;
+}
+
+.application-card.accepted {
+  border-left-color: #10B981;
+  background: #F0FDF4;
+}
+
+.application-card.rejected {
+  border-left-color: #EF4444;
+  background: #FEF2F2;
+}
+
+.application-card.pending {
+  border-left-color: #F59E0B;
+  background: #FFFBEB;
+}
+
+.application-header {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.company-logo.small {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #1A56DB, #0D2B66);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.application-info {
+  flex: 1;
+}
+
+.application-info h4 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  color: #1E293B;
+}
+
+.application-info .company-name {
+  font-size: 0.75rem;
+  color: #64748B;
+}
+
+.applied-date {
+  font-size: 0.7rem;
+  color: #94A3B8;
+  margin-top: 0.25rem;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.status-badge.pending {
+  background: #FEF3C7;
+  color: #92400E;
+}
+
+.status-badge.accepted {
+  background: #DCFCE7;
+  color: #166534;
+}
+
+.status-badge.rejected {
+  background: #FEE2E2;
+  color: #991B1B;
+}
+
+.application-actions {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #E2E8F0;
+}
+
+.btn-contact-employer {
+  padding: 0.4rem 1rem;
+  background: #1A56DB;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.application-feedback {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: rgba(0,0,0,0.03);
+  border-radius: 8px;
+  font-size: 0.75rem;
+  color: #475569;
 }
 
 .empty-state {
@@ -999,5 +1239,13 @@ select, .salary-input {
   .role-badge span, .nav-link span {
     display: none;
   }
+  
+  .application-header {
+    flex-direction: column;
+  }
+  
+  .application-status {
+    align-self: flex-start;
+  }
 }
-</style>//u
+</style>

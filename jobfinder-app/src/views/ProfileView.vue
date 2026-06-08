@@ -460,8 +460,17 @@ const saveProfile = async () => {
 }
 
 const goBack = () => {
-  router.push('/dashboard')
+  const userRole = user.value?.role
+  
+  if (userRole === 'candidate') {
+    router.push('/candidate-dashboard')
+  } else if (userRole === 'employer') {
+    router.push('/employer-dashboard')
+  } else {
+    router.push('/')
+  }
 }
+
 </script>
 
 <style scoped>
@@ -811,7 +820,7 @@ const goBack = () => {
   color: #64748b;
   font-style: italic;
 }
-//u
+
 
 /* Input de habilidades */
 .skills-input-container {

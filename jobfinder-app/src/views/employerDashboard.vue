@@ -470,25 +470,25 @@ const newJob = ref({
 })
 
 const categories = [
-  { value: 'tecnología', label: ' Tecnología / IT' },
+  { value: 'tecnología', label: 'Tecnología / IT' },
   { value: 'ventas', label: 'Ventas' },
-  { value: 'construcción', label: ' Construcción / Obras' },
-  { value: 'salud', label: ' Salud / Medicina' },
-  { value: 'educación', label: ' Educación / Docencia' },
-  { value: 'administrativo', label: ' Administrativo / Oficina' },
-  { value: 'comercio', label: ' Comercio / Retail' },
-  { value: 'transporte', label: ' Transporte / Logística' },
-  { value: 'alimentos', label: ' Alimentos / Gastronomía' },
-  { value: 'servicios', label: ' Servicios Generales' },
-  { value: 'marketing', label: ' Marketing / Publicidad' },
-  { value: 'diseño', label: ' Diseño / Creativo' },
-  { value: 'finanzas', label: ' Finanzas / Contabilidad' },
-  { value: 'legal', label: ' Legal / Jurídico' },
-  { value: 'seguridad', label: ' Seguridad / Vigilancia' },
-  { value: 'manufactura', label: ' Manufactura / Producción' },
-  { value: 'turismo', label: ' Turismo / Hotelería' },
-  { value: 'deporte', label: ' Deporte / Fitness' },
-  { value: 'agricultura', label: ' Agricultura / Campo' }
+  { value: 'construcción', label: 'Construcción / Obras' },
+  { value: 'salud', label: 'Salud / Medicina' },
+  { value: 'educación', label: 'Educación / Docencia' },
+  { value: 'administrativo', label: 'Administrativo / Oficina' },
+  { value: 'comercio', label: 'Comercio / Retail' },
+  { value: 'transporte', label: 'Transporte / Logística' },
+  { value: 'alimentos', label: 'Alimentos / Gastronomía' },
+  { value: 'servicios', label: 'Servicios Generales' },
+  { value: 'marketing', label: 'Marketing / Publicidad' },
+  { value: 'diseño', label: 'Diseño / Creativo' },
+  { value: 'finanzas', label: 'Finanzas / Contabilidad' },
+  { value: 'legal', label: 'Legal / Jurídico' },
+  { value: 'seguridad', label: 'Seguridad / Vigilancia' },
+  { value: 'manufactura', label: 'Manufactura / Producción' },
+  { value: 'turismo', label: 'Turismo / Hotelería' },
+  { value: 'deporte', label: 'Deporte / Fitness' },
+  { value: 'agricultura', label: 'Agricultura / Campo' }
 ]
 
 const jobTypes = [
@@ -562,17 +562,45 @@ const closeCandidateModal = () => {
   viewingCandidate.value = null
 }
 
+// ✅ MÉTODO ACTUALIZADO - Aceptar postulación con notificación
 const acceptApplication = (application) => {
   application.status = 'accepted'
+  application.feedback = '¡Felicidades! Tu postulación ha sido aceptada. El empleador se pondrá en contacto contigo pronto.'
+  
+  // Actualizar en recibidas del empleador
   localStorage.setItem('receivedApplications', JSON.stringify(receivedApplications.value))
-  alert(`✅ Has aceptado la postulación de ${application.candidateName}`)
+  
+  // Actualizar en postulaciones del candidato
+  const candidateApps = JSON.parse(localStorage.getItem('candidate_applications') || '[]')
+  const candidateAppIndex = candidateApps.findIndex(app => app.id === application.id)
+  if (candidateAppIndex !== -1) {
+    candidateApps[candidateAppIndex].status = 'accepted'
+    candidateApps[candidateAppIndex].feedback = application.feedback
+    localStorage.setItem('candidate_applications', JSON.stringify(candidateApps))
+  }
+  
+  alert(`✅ Has aceptado la postulación de ${application.candidateName}. El candidato ha sido notificado.`)
 }
 
+// ✅ MÉTODO ACTUALIZADO - Rechazar postulación con notificación
 const rejectApplication = (application) => {
   if (confirm(`¿Rechazar la postulación de ${application.candidateName}?`)) {
     application.status = 'rejected'
+    application.feedback = 'Lo sentimos, tu postulación ha sido rechazada. Sigue buscando más oportunidades.'
+    
+    // Actualizar en recibidas del empleador
     localStorage.setItem('receivedApplications', JSON.stringify(receivedApplications.value))
-    alert(`❌ Has rechazado la postulación de ${application.candidateName}`)
+    
+    // Actualizar en postulaciones del candidato
+    const candidateApps = JSON.parse(localStorage.getItem('candidate_applications') || '[]')
+    const candidateAppIndex = candidateApps.findIndex(app => app.id === application.id)
+    if (candidateAppIndex !== -1) {
+      candidateApps[candidateAppIndex].status = 'rejected'
+      candidateApps[candidateAppIndex].feedback = application.feedback
+      localStorage.setItem('candidate_applications', JSON.stringify(candidateApps))
+    }
+    
+    alert(`❌ Has rechazado la postulación de ${application.candidateName}.`)
   }
 }
 
@@ -2032,4 +2060,4 @@ form {
     text-align: center;
   }
 }
-</style>//u
+</style>
