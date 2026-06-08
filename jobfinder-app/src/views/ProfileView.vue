@@ -811,7 +811,7 @@ const goBack = () => {
   color: #64748b;
   font-style: italic;
 }
-
+//u
 
 /* Input de habilidades */
 .skills-input-container {

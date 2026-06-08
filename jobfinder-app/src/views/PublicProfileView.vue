@@ -138,7 +138,7 @@
               <span v-if="!profile.skills || profile.skills.length === 0" class="no-data">No especificadas</span>
             </div>
           </section>
-
+//u
           <section class="info-section">
             <h3>Formación</h3>
             <p>{{ profile.education || 'No especificada' }}</p>

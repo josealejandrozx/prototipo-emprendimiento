@@ -147,4 +147,4 @@ export const useAuthStore = defineStore('auth', () => {
     logout,
     checkAuth
   }
-})
+})//u

@@ -45,5 +45,3 @@ body {
 }
 </style>
 
-//luis gay
-//muy gay
