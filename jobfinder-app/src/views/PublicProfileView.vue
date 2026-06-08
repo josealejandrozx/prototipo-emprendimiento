@@ -1,19 +1,34 @@
 <template>
   <div class="public-profile-container">
-    <!-- Cargando -->
-    <div v-if="loading" class="loading-state">
-      <div class="spinner"></div>
-      <p>Cargando perfil...</p>
-    </div>
+    <!-- Header con botón volver -->
+    <header class="header">
+      <div class="header-content">
+        <button class="back-btn" @click="goBack">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          </svg>
+          Volver
+        </button>
+        <h1 v-if="profile" class="header-title">
+          Perfil de {{ profile.company_name || profile.name }}
+        </h1>
+        <div></div> <!-- para mantener el espacio -->
+      </div>
+    </header>
 
-    <!-- Error -->
-    <div v-else-if="error" class="error-state">
-      <p>❌ {{ error }}</p>
-      <button @click="router.back()">Volver</button>
-    </div>
+    <!-- Resto del contenido (loading, error, perfil) -->
+    <main class="main-content">
+      <div v-if="loading" class="loading-state">
+        <div class="spinner"></div>
+        <p>Cargando perfil...</p>
+      </div>
 
-    <!-- Perfil -->
-    <template v-else-if="profile">
+      <div v-else-if="error" class="error-state">
+        <p>❌ {{ error }}</p>
+        <button @click="goBack">Volver</button>
+      </div>
+
+      <template v-else-if="profile">
       <!-- Cabecera tipo tarjeta -->
       <div class="profile-hero">
         <div class="avatar">
@@ -188,6 +203,7 @@
         <!-- Aquí podrías listar los trabajos publicados por este empleador -->
       </div>
     </template>
+  </main>
   </div>
 </template>
 
@@ -202,11 +218,11 @@ const route = useRoute()
 const router = useRouter()
 const profileStore = useProfileStore()
 
-const myRatings = computed(() => ratingsStore.getRatingsForUser(user.value.id))
-
 const authStore = useAuthStore()
 const ratingsStore = useRatingsStore()
 const currentUser = computed(() => authStore.user)
+const myRatings = computed(() => ratingsStore.getRatingsForUser(currentUser.value?.id))
+
 
 const loading = computed(() => profileStore.loading)
 const error = computed(() => profileStore.error)
@@ -220,6 +236,10 @@ const profileRatings = computed(() => {
   if (!profile.value) return []
   return ratingsStore.getRatingsForUser(profile.value.id)
 })
+
+const goBack = () => {
+  router.back()
+}
 
 const canRate = computed(() => {
   return currentUser.value && profile.value && currentUser.value.id !== profile.value.id
@@ -273,6 +293,130 @@ onMounted(() => {
   max-width: 800px;
   margin: 0 auto;
   padding: 1.5rem;
+}
+
+.header {
+  background: white;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 1rem 0;
+  margin-bottom: 1rem;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 9999px;
+  background: #ffffff;
+  color: #1f2937;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.back-btn svg {
+  stroke: currentColor;
+}
+
+.header-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-align: center;
+  flex: 1;
+}
+
+.main-content {
+  background: white;
+  border-radius: 24px;
+  box-shadow: 0 8px 30px rgba(15, 23, 42, 0.05);
+  padding: 1.5rem;
+}
+
+.profile-hero {
+  display: grid;
+  gap: 1rem;
+  text-align: center;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.avatar {
+  width: 88px;
+  height: 88px;
+  margin: 0 auto;
+  border-radius: 9999px;
+  background: #4f46e5;
+  display: grid;
+  place-items: center;
+  color: white;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.role-badge {
+  display: inline-flex;
+  padding: 0.4rem 0.9rem;
+  border-radius: 9999px;
+  background: #e0e7ff;
+  color: #3730a3;
+  font-size: 0.85rem;
+  font-weight: 600;
+  justify-self: center;
+}
+
+.profile-details {
+  margin-top: 1.5rem;
+  display: grid;
+  gap: 1.5rem;
+}
+
+.info-section {
+  background: #f8fafc;
+  border-radius: 20px;
+  padding: 1.25rem;
+}
+
+.info-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.info-item {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.info-item label {
+  font-size: 0.8rem;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.skill-tag {
+  display: inline-flex;
+  padding: 0.45rem 0.9rem;
+  border-radius: 9999px;
+  background: #e0f2fe;
+  color: #0369a1;
+  font-size: 0.85rem;
+  margin: 0 0.4rem 0.4rem 0;
+}
+
+.private-notice {
+  background: #fef3c7;
+  color: #78350f;
+  border-radius: 16px;
+  padding: 0.9rem 1rem;
 }
 
 .loading-state, .error-state {
@@ -604,4 +748,6 @@ a {
     grid-template-columns: 1fr;
   }
 }
+
+
 </style>

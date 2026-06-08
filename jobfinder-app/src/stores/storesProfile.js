@@ -3,18 +3,16 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { useAuthStore } from './auth'
 
+
 export const useProfileStore = defineStore('profile', () => {
-  const publicProfile = ref(null)  // perfil de otro usuario
+  const publicProfile = ref(null)
   const loading = ref(false)
   const error = ref(null)
 
-  // Obtiene perfil público por ID
   const fetchPublicProfile = async (userId) => {
     loading.value = true
     error.value = null
     try {
-      // Simulación: busca en datos mock
-      // En backend real sería un fetch a /api/profile/:id
       const response = await mockFetchProfile(userId)
       publicProfile.value = response
     } catch (err) {
@@ -27,14 +25,16 @@ export const useProfileStore = defineStore('profile', () => {
   return { publicProfile, loading, error, fetchPublicProfile }
 })
 
-// Simulación de endpoint (puedes eliminarla cuando tengas backend)
+// Simulación de endpoint con todos los perfiles
 async function mockFetchProfile(userId) {
-  // Datos mock para perfiles públicos
+  // Convertir a número si viene como string
+  const id = Number(userId)
+
+  // Base de datos mock ampliada
   const users = {
     1: {
       id: 1,
       name: 'Carlos Rodríguez',
-      email: 'carlos@techsolutions.com',
       role: 'employer',
       phone: '3001234567',
       company_name: 'Tech Solutions SAS',
@@ -52,7 +52,6 @@ async function mockFetchProfile(userId) {
     2: {
       id: 2,
       name: 'Ana María González',
-      email: 'ana@example.com',
       role: 'candidate',
       phone: '3007654321',
       address: 'Barrio Los Colores, Montería',
@@ -68,14 +67,68 @@ async function mockFetchProfile(userId) {
       rating_avg: 4.8,
       rating_count: 5,
       bio: 'Vendedora creativa con experiencia en retail.'
+    },
+    3: {
+      id: 3,
+      name: 'Juan Carlos Pérez',
+      role: 'candidate',
+      phone: '3012345678',
+      address: 'Barrio El Recreo, Montería',
+      skills: [{ name: 'Desarrollo web' }, { name: 'JavaScript' }, { name: 'Vue.js' }],
+      experience: '4 años como desarrollador fullstack',
+      education: 'Ingeniería de Sistemas - Universidad del Sinú',
+      linkedin: 'linkedin.com/in/juancperez',
+      visibility: 'public',
+      rating_avg: 4.5,
+      rating_count: 3,
+      bio: 'Desarrollador fullstack con 4 años de experiencia.'
+    },
+    4: {
+      id: 4,
+      name: 'María Fernanda López',
+      role: 'candidate',
+      phone: '3023456789',
+      address: 'Centro, Montería',
+      skills: [{ name: 'Marketing digital' }, { name: 'SEO' }, { name: 'Redes sociales' }],
+      experience: '6 años en agencias de marketing',
+      education: 'Comunicación Social - Universidad de Córdoba',
+      linkedin: 'linkedin.com/in/mflopez',
+      visibility: 'public',
+      rating_avg: 4.2,
+      rating_count: 8,
+      bio: 'Especialista en marketing digital y contenidos.'
+    },
+    5: {
+      id: 5,
+      name: 'Pedro Ramírez',
+      role: 'candidate',
+      phone: '3034567890',
+      address: 'Barrio La Pradera, Montería',
+      skills: [{ name: 'Diseño gráfico' }, { name: 'Photoshop' }, { name: 'Ilustración' }],
+      experience: '3 años como freelance',
+      education: 'Diseño Gráfico - Instituto Tecnológico',
+      linkedin: 'linkedin.com/in/pedroramirez',
+      visibility: 'public',
+      rating_avg: 4.0,
+      rating_count: 2,
+      bio: 'Diseñador gráfico freelance.'
     }
   }
-  // Simular retardo de red
-  await new Promise(resolve => setTimeout(resolve, 300))
-  const user = users[userId]
-  if (!user) throw new Error('Usuario no encontrado')
+
+  // Si el ID no está en el mock, crear perfil genérico (para evitar error)
+  if (!users[id]) {
+    // Buscar en el store de búsqueda (opcional) o devolver perfil básico
+    return {
+      id: id,
+      name: 'Usuario #' + id,
+      role: 'candidate',
+      visibility: 'private', // se mostrará como privado
+      bio: 'Perfil no disponible.'
+    }
+  }
+
+  const user = users[id]
   if (user.visibility === 'private') {
-    // Si es privado, devolvemos solo datos limitados
     return {
       id: user.id,
       role: user.role,
@@ -84,7 +137,7 @@ async function mockFetchProfile(userId) {
       bio: 'Este perfil es privado.'
     }
   }
-  // Si es público, devolvemos todos los datos excepto email (por seguridad)
-  const { email, ...publicData } = user
-  return publicData
+
+  // Si es público, devolver datos sin email
+  return { ...user }
 }
