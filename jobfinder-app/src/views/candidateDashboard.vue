@@ -340,17 +340,45 @@ const applyFilters = () => {
 }
 
 const applyJob = (job) => {
-  showModal.value = true
+  // Verificar si ya aplicó a esta vacante
+  const existingApplications = JSON.parse(localStorage.getItem('candidate_applications') || '[]')
+  const alreadyApplied = existingApplications.some(app => app.jobId === job.id)
   
-  const applications = JSON.parse(localStorage.getItem('candidate_applications') || '[]')
-  applications.push({
+  if (alreadyApplied) {
+    alert('Ya has aplicado a esta vacante anteriormente')
+    return
+  }
+  
+  // Crear nueva postulación
+  const newApplication = {
     id: Date.now(),
     jobId: job.id,
     jobTitle: job.title,
     company: job.company,
-    appliedAt: new Date().toLocaleDateString()
+    companyId: job.companyId || job.id,
+    appliedAt: new Date().toLocaleDateString(),
+    status: 'pending',
+    candidateId: user.value?.id,
+    candidateName: user.value?.name,
+    candidateEmail: user.value?.email,
+    candidatePhone: user.value?.phone,
+    candidateSkills: user.value?.skills || []
+  }
+  
+  existingApplications.push(newApplication)
+  localStorage.setItem('candidate_applications', JSON.stringify(existingApplications))
+  
+  // También guardar en las postulaciones recibidas del empleador
+  const receivedApplications = JSON.parse(localStorage.getItem('receivedApplications') || '[]')
+  receivedApplications.push({
+    ...newApplication,
+    jobId: job.id,
+    jobTitle: job.title,
+    company: job.company
   })
-  localStorage.setItem('candidate_applications', JSON.stringify(applications))
+  localStorage.setItem('receivedApplications', JSON.stringify(receivedApplications))
+  
+  showModal.value = true
 }
 
 const handleLogout = () => {

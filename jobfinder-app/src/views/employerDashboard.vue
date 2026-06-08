@@ -547,7 +547,15 @@ const toggleApplications = (jobId) => {
 }
 
 const viewCandidateProfile = (application) => {
-  viewingCandidate.value = application
+  // Buscar el candidato completo en la lista de usuarios
+  const users = JSON.parse(localStorage.getItem('users') || '[]')
+  const fullCandidate = users.find(u => u.id === application.candidateId || u.name === application.candidateName)
+  
+  if (fullCandidate) {
+    router.push(`/profile/${fullCandidate.id}`)
+  } else {
+    alert('No se pudo encontrar el perfil del candidato')
+  }
 }
 
 const closeCandidateModal = () => {
